@@ -14,8 +14,19 @@ def setup_env():
         print("Arquivo .env já existe.")
 
 def setup_database():
-    print("Inicializando banco de dados... (Será implementado na Fase 2)")
-    pass
+    print("Testando conexão com o banco de dados...")
+    
+    # Importamos a engine aqui para não dar erro se o ambiente não estiver pronto
+    from database.session import engine
+    from sqlalchemy import text
+    
+    try:
+        with engine.connect() as conn:
+            # Faz um select simples só para forçar o SQLite a inicializar o arquivo
+            result = conn.execute(text("SELECT 'Banco OK!'"))
+            print(f"Sucesso: {result.scalar()}")
+    except Exception as e:
+        print(f"Erro ao conectar com o banco: {e}")
 
 if __name__ == "__main__":
     print("=== Iniciando Setup do Ambiente ===")
