@@ -31,10 +31,11 @@ def restore_data():
         apto2 = Apartamento(numero="102")
         db.add_all([apto1, apto2])
         
-        print("3. Inserindo áreas comuns (Churrasqueira e Salão de Festas)...")
-        area1 = Area(nome="Churrasqueira")
-        area2 = Area(nome="Salão de Festas")
-        db.add_all([area1, area2])
+        print("3. Inserindo áreas comuns (Churrasqueira, Salão de Festas, e Quadra)...")
+        area1 = Area(nome="Churrasqueira", taxa=50.0)
+        area2 = Area(nome="Salão de Festas", taxa=150.0)
+        area3 = Area(nome="Quadra", taxa=0.0)
+        db.add_all([area1, area2, area3])
         
         db.commit()
         print("=== Restauração Concluída com Sucesso ===")

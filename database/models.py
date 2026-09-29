@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint, Float
 from sqlalchemy.orm import relationship
 from database.session import Base
 
@@ -14,6 +14,7 @@ class Area(Base):
     __tablename__ = "areas"
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String, unique=True, index=True, nullable=False)
+    taxa = Column(Float, default=0.0, nullable=False)
     
     reservas = relationship("Reserva", back_populates="area")
 

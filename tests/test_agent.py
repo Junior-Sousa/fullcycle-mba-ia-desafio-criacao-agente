@@ -9,12 +9,14 @@ def test_agent_initialization():
     assert "Residencial Aurora" in agent.instruction
 
 def test_agent_tools_configured():
-    # Verify the agent has exactly 4 tools configured
-    assert len(agent.tools) == 4
+    # Verify the agent has exactly 6 tools configured
+    assert len(agent.tools) == 6
 
     tool_names = [tool.__name__ for tool in agent.tools]
     assert "listar_apartamentos" in tool_names
     assert "listar_areas_comuns" in tool_names
     assert "autorizar_visitante" in tool_names
     assert "reservar_area" in tool_names
+    assert "listar_minhas_reservas" in tool_names
+    assert "cancelar_reserva" in tool_names
 
