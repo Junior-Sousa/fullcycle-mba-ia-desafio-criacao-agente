@@ -11,14 +11,10 @@ dependencies = [
     "fastapi>=0.141.1",
     "google-adk==2.2.0",
     "pydantic-settings>=2.15.0",
+    "pytest>=9.1.1",
     "python-dotenv>=1.2.3",
     "sqlalchemy>=2.1.1",
     "uvicorn>=0.54.0",
 ]
 
-[project.scripts]
-fullcycle-mba-ia-desafio-criacao-agente = "fullcycle_mba_ia_desafio_criacao_agente:main"
 
-[build-system]
-requires = ["uv_build>=0.12.20,<0.13.0"]
-build-backend = "uv_build"
