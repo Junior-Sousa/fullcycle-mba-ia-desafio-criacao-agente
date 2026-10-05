@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from enum import Enum
 
 
@@ -22,7 +22,20 @@ class RespostaRes(BaseModel):
 
 class ResponderConfirmacaoReq(BaseModel):
     id: str
-    confirmar: bool
+    confirmado: bool | None = None
+    confirmar: bool | None = None
+
+    @model_validator(mode="after")
+    def validate_confirmacao(self):
+        if self.confirmado is None and self.confirmar is None:
+            raise ValueError("O campo 'confirmado' é obrigatório.")
+        if self.confirmado is None:
+            self.confirmado = self.confirmar
+        return self
+
+    @property
+    def is_confirmed(self) -> bool:
+        return bool(self.confirmado)
 
 class ReservaModel(BaseModel):
     codigo: str

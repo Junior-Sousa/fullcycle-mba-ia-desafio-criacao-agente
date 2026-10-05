@@ -52,8 +52,13 @@ async def _process_adk_events(session_id: str, user_id: str, adk_run_coro) -> Re
                         response_text = ""
     except Exception as e:
         error_str = str(e).lower()
-        if "invalid" in error_str and "confirmation" in error_str or "not expected" in error_str:
-            raise HTTPException(status_code=409, detail="Confirmação inválida")
+        if (
+            ("invalid" in error_str and "confirmation" in error_str)
+            or "not expected" in error_str
+            or "not found for function response" in error_str
+            or "function call not found" in error_str
+        ):
+            raise HTTPException(status_code=409, detail="Confirmação inválida ou não encontrada")
         raise HTTPException(status_code=500, detail=str(e))
 
     if pendentes:
@@ -93,12 +98,38 @@ async def enviar_mensagem(session_id: str, req: EnviarMensagemReq):
 async def responder_confirmacao(session_id: str, req: ResponderConfirmacaoReq):
     user_id = await _get_or_404_user_id(session_id)
 
+    session_data = await runner.session_service.get_session(
+        app_name=runner.app_name,
+        user_id=user_id,
+        session_id=session_id
+    )
+    if not session_data or not session_data.events:
+        raise HTTPException(status_code=409, detail="Não há confirmações pendentes nesta sessão")
+
+    requested_ids = set()
+    responded_ids = set()
+    for event in session_data.events:
+        if not event.content or not event.content.parts:
+            continue
+        for part in event.content.parts:
+            if part.function_call and part.function_call.name == "adk_request_confirmation":
+                if part.function_call.id:
+                    requested_ids.add(part.function_call.id)
+            elif part.function_response and part.function_response.name == "adk_request_confirmation":
+                if part.function_response.id:
+                    responded_ids.add(part.function_response.id)
+
+    if req.id not in requested_ids:
+        raise HTTPException(status_code=409, detail="Confirmação inexistente nesta sessão")
+    if req.id in responded_ids:
+        raise HTTPException(status_code=409, detail="Confirmação já respondida")
+
     msg = types.Content(role="user", parts=[
         types.Part(
             function_response=types.FunctionResponse(
                 name="adk_request_confirmation",
                 id=req.id,
-                response={"confirmed": req.confirmar}
+                response={"confirmed": req.is_confirmed}
             )
         )
     ])
