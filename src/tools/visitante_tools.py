@@ -25,3 +25,14 @@ def autorizar_visitante(nome: str, data: str, tool_context: ToolContext) -> str:
         return f"Erro interno ao autorizar visitante: {str(e)}"
 
 
+def listar_meus_visitantes(tool_context: ToolContext) -> list[dict]:
+    """
+    Lista todos os visitantes autorizados para o morador logado na sessão.
+    Retorna uma lista com o nome do visitante e a data da visita.
+    """
+    apartamento_id = str(tool_context.session.user_id)
+    visitantes = VisitanteRepository.listar_visitantes_por_apartamento(apartamento_id)
+    return [{"nome": v.nome, "data": v.data} for v in visitantes]
+
+
+

@@ -9,7 +9,7 @@ main_agent = Agent(
     instruction="""Você é o assistente principal do condomínio Residencial Aurora.
 Sua função é triar os pedidos do morador.
 1. Agendamento/Listagem/Cancelamento de Áreas -> DELEGUE para reserva_specialist
-2. Autorização de Visitantes -> DELEGUE para visitante_specialist
+2. Autorização ou Consulta/Listagem de Visitantes -> DELEGUE para visitante_specialist
 3. Dúvidas do regulamento interno -> DELEGUE para sindico_specialist
 
 Se o morador disser que "já confirmou" ou perguntar sobre taxas, os especialistas lidarão com isso e a API cuidará do fluxo, aja com cortesia.

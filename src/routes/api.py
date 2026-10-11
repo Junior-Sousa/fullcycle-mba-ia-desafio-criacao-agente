@@ -11,8 +11,8 @@ from src.routes.schemas import (
     EnviarMensagemReq, ResponderConfirmacaoReq,
     RespostaRes, ConfirmacaoPendente,
     ReservaModel, VisitanteModel,
-    EventoRes, EventosRes,
     AcaoConfirmacao,
+
 )
 
 router = APIRouter()
@@ -141,7 +141,7 @@ async def responder_confirmacao(session_id: str, req: ResponderConfirmacaoReq):
     )
 
 
-@router.get("/sessoes/{session_id}/eventos", response_model=EventosRes)
+@router.get("/sessoes/{session_id}/eventos", response_model=list[dict])
 async def listar_eventos(session_id: str):
     user_id = await _get_or_404_user_id(session_id)
 
@@ -151,22 +151,10 @@ async def listar_eventos(session_id: str):
         session_id=session_id
     )
     if not session_data or not session_data.events:
-        return EventosRes(eventos=[])
+        return []
 
-    eventos = []
-    for event in session_data.events:
-        msg = event.content
-        if not msg:
-            continue
-        for part in (msg.parts or []):
-            if part.text:
-                eventos.append(EventoRes(role=event.author, texto=part.text))
-            elif part.function_call:
-                eventos.append(EventoRes(role=event.author, acao=part.function_call.name))
-            elif part.function_response:
-                eventos.append(EventoRes(role=event.author, acao=f"resposta_confirmacao: {part.function_response.name}"))
+    return [event.model_dump(mode="json") for event in session_data.events]
 
-    return EventosRes(eventos=eventos)
 
 
 @router.get("/apartamentos/{id}/reservas", response_model=list[ReservaModel])
