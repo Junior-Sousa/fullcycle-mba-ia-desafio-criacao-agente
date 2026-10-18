@@ -5,7 +5,7 @@ from src.database.session import Base
 class ReservaSequencia(Base):
     __tablename__ = "reserva_sequencia"
     id = Column(Integer, primary_key=True, default=1)
-    proximo_numero = Column(Integer, nullable=False, default=5000)
+    proximo_numero = Column(Integer, nullable=False, default=1)
 
 def generate_reserva_code():
     return f"RSV-{uuid.uuid4()}"

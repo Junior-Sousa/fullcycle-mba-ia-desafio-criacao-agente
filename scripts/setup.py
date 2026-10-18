@@ -72,16 +72,18 @@ def setup_database():
             db.add(Reserva(codigo=res["codigo"], apartamento=res["apartamento"], area=res["area"], data=res["data"]))
         db.commit()
 
-        print("Inicializando sequência de reservas...")
-        maior_codigo = 5000
+        print("Inicializando sequência de reservas a partir da massa existente...")
+        maior_codigo = 0
         for res in reservas_dados:
             cod = res.get("codigo", "")
             if cod.startswith("RSV-"):
                 num_str = cod.replace("RSV-", "")
-                if num_str.isdigit() and int(num_str) >= maior_codigo:
-                    maior_codigo = int(num_str) + 1
-        db.add(ReservaSequencia(id=1, proximo_numero=maior_codigo))
+                if num_str.isdigit():
+                    maior_codigo = max(maior_codigo, int(num_str))
+        proximo_numero = maior_codigo + 1 if maior_codigo > 0 else 1
+        db.add(ReservaSequencia(id=1, proximo_numero=proximo_numero))
         db.commit()
+        print(f"Sequência de reservas inicializada em: {proximo_numero}")
 
         print("Inserindo visitantes...")
         visitantes_dados = carregar_json("visitantes.json")

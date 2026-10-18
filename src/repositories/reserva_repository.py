@@ -8,13 +8,13 @@ class ReservaRepository:
     def gerar_proximo_codigo(db) -> str:
         seq = db.query(ReservaSequencia).filter(ReservaSequencia.id == 1).with_for_update().first()
         if not seq:
-            maior = 5000
+            maior = 0
             for r in db.query(Reserva.codigo).all():
                 if r.codigo and r.codigo.startswith("RSV-"):
                     num = r.codigo.replace("RSV-", "")
-                    if num.isdigit() and int(num) >= maior:
-                        maior = int(num) + 1
-            seq = ReservaSequencia(id=1, proximo_numero=maior)
+                    if num.isdigit():
+                        maior = max(maior, int(num))
+            seq = ReservaSequencia(id=1, proximo_numero=maior + 1)
             db.add(seq)
             db.flush()
 
