@@ -46,7 +46,7 @@ def listar_minhas_reservas(tool_context: ToolContext) -> list[dict]:
 
 def cancelar_reserva(codigo: str, tool_context: ToolContext) -> str:
     """
-    Cancela uma reserva existente do morador atual informando o código da reserva (ex: RSV-1234).
+    Cancela uma reserva existente do morador atual informando o código da reserva (ex: RSV-1377 ou RSV-e4b2...).
     """
     apartamento_id = str(tool_context.session.user_id)
     reserva = ReservaRepository.obter_reserva(codigo)

@@ -1,19 +1,49 @@
 from src.database.session import SessionLocal
 from src.models import Reserva
+from src.models.reserva import generate_reserva_code
 from sqlalchemy.exc import IntegrityError
 
 class ReservaRepository:
     @staticmethod
-    def criar_reserva(apartamento_id: str, area_id: str, data: str):
+    def criar_reserva(apartamento_id: str, area_id: str, data: str, max_retries: int = 3):
         db = SessionLocal()
         try:
-            nova_reserva = Reserva(apartamento=apartamento_id, area=area_id, data=data)
-            db.add(nova_reserva)
-            db.commit()
-            return nova_reserva
-        except IntegrityError:
-            db.rollback()
-            raise ValueError("Erro: Esta área já está reservada por outro morador nesta data.")
+            # Checagem prévia se a área já está reservada na data solicitada
+            reserva_existente = db.query(Reserva).filter(Reserva.area == area_id, Reserva.data == data).first()
+            if reserva_existente:
+                raise ValueError("Erro: Esta área já está reservada por outro morador nesta data.")
+
+            for tentativa in range(max_retries):
+                try:
+                    nova_reserva = Reserva(
+                        apartamento=apartamento_id,
+                        area=area_id,
+                        data=data,
+                        codigo=generate_reserva_code()
+                    )
+                    db.add(nova_reserva)
+                    db.commit()
+                    db.refresh(nova_reserva)
+                    return nova_reserva
+                except IntegrityError as e:
+                    db.rollback()
+                    err_str = str(e).lower()
+
+                    # Conflito de área e data (UniqueConstraint uix_reserva_area_data)
+                    if "uix_reserva_area_data" in err_str or "reservas.area" in err_str or "reservas.data" in err_str:
+                        raise ValueError("Erro: Esta área já está reservada por outro morador nesta data.")
+
+                    # Colisão do código da reserva (UniqueConstraint reservas.codigo)
+                    if "reservas.codigo" in err_str or "codigo" in err_str:
+                        if tentativa < max_retries - 1:
+                            continue
+                        raise ValueError("Erro: Falha de colisão ao gerar identificador único para a reserva. Tente novamente.")
+
+                    # Fallback de verificação caso o texto do erro da constraint seja opaco no driver
+                    if db.query(Reserva).filter(Reserva.area == area_id, Reserva.data == data).first():
+                        raise ValueError("Erro: Esta área já está reservada por outro morador nesta data.")
+
+                    raise ValueError("Erro de integridade ao processar a reserva.")
         except Exception as e:
             db.rollback()
             raise e

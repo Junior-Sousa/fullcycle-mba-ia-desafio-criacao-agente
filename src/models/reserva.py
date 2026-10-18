@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from src.database.session import Base
 
 def generate_reserva_code():
-    return f"RSV-{str(uuid.uuid4().int)[:4]}"
+    return f"RSV-{uuid.uuid4()}"
 
 class Reserva(Base):
     __tablename__ = "reservas"
