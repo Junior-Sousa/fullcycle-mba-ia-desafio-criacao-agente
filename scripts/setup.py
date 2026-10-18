@@ -26,7 +26,7 @@ def setup_database():
     
     # Importa módulos locais do projeto
     from src.database.session import Base, engine, SessionLocal
-    from src.models import Apartamento, Area, Reserva, Visitante
+    from src.models import Apartamento, Area, Reserva, ReservaSequencia, Visitante
 
     # Apaga os bancos de dados antigos para garantir um restore limpo
     DB_PATH = BASE_DIR / 'condominio.db'
@@ -70,6 +70,17 @@ def setup_database():
         reservas_dados = carregar_json("reservas.json")
         for res in reservas_dados:
             db.add(Reserva(codigo=res["codigo"], apartamento=res["apartamento"], area=res["area"], data=res["data"]))
+        db.commit()
+
+        print("Inicializando sequência de reservas...")
+        maior_codigo = 5000
+        for res in reservas_dados:
+            cod = res.get("codigo", "")
+            if cod.startswith("RSV-"):
+                num_str = cod.replace("RSV-", "")
+                if num_str.isdigit() and int(num_str) >= maior_codigo:
+                    maior_codigo = int(num_str) + 1
+        db.add(ReservaSequencia(id=1, proximo_numero=maior_codigo))
         db.commit()
 
         print("Inserindo visitantes...")

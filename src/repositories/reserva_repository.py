@@ -1,9 +1,28 @@
 from src.database.session import SessionLocal
-from src.models import Reserva
+from src.models import Reserva, ReservaSequencia
 from src.models.reserva import generate_reserva_code
 from sqlalchemy.exc import IntegrityError
 
 class ReservaRepository:
+    @staticmethod
+    def gerar_proximo_codigo(db) -> str:
+        seq = db.query(ReservaSequencia).filter(ReservaSequencia.id == 1).with_for_update().first()
+        if not seq:
+            maior = 5000
+            for r in db.query(Reserva.codigo).all():
+                if r.codigo and r.codigo.startswith("RSV-"):
+                    num = r.codigo.replace("RSV-", "")
+                    if num.isdigit() and int(num) >= maior:
+                        maior = int(num) + 1
+            seq = ReservaSequencia(id=1, proximo_numero=maior)
+            db.add(seq)
+            db.flush()
+
+        numero = seq.proximo_numero
+        seq.proximo_numero += 1
+        db.flush()
+        return f"RSV-{numero}"
+
     @staticmethod
     def criar_reserva(apartamento_id: str, area_id: str, data: str, max_retries: int = 3):
         db = SessionLocal()
@@ -15,11 +34,12 @@ class ReservaRepository:
 
             for tentativa in range(max_retries):
                 try:
+                    codigo = ReservaRepository.gerar_proximo_codigo(db)
                     nova_reserva = Reserva(
                         apartamento=apartamento_id,
                         area=area_id,
                         data=data,
-                        codigo=generate_reserva_code()
+                        codigo=codigo
                     )
                     db.add(nova_reserva)
                     db.commit()

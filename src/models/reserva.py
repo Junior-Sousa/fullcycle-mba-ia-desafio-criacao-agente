@@ -2,6 +2,11 @@ import uuid
 from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from src.database.session import Base
 
+class ReservaSequencia(Base):
+    __tablename__ = "reserva_sequencia"
+    id = Column(Integer, primary_key=True, default=1)
+    proximo_numero = Column(Integer, nullable=False, default=5000)
+
 def generate_reserva_code():
     return f"RSV-{uuid.uuid4()}"
 
